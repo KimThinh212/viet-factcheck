@@ -1,31 +1,28 @@
-# Fact-Checking Pipeline Architecture
+# Kiến Trúc Hệ Thống Fact-Checking Tiếng Việt
 
-This project implements a multi-stage Vietnamese Fact-Checking pipeline modeled after standard FEVER / ViWikiFC architectures.
+Dự án này cài đặt pipeline kiểm chứng thông tin tiếng Việt dựa trên kiến trúc chuẩn của các mô hình FEVER / ViWikiFC.
 
-## Pipeline Flow
+## Sơ Đồ Pipeline
 
 ```mermaid
 flowchart TD
-    A["Claim (Ph?t bi?u c?n ki?m ch?ng)"] --> B["Document / Context Fetcher"]
+    A["Claim (Phát biểu cần kiểm chứng)"] --> B["Document / Context Fetcher"]
     B --> C["Evidence Retrieval (BM25 / TF-IDF / Bi-Encoder)"]
     C --> D["Top-K Candidate Evidence Sentences"]
     D --> E["Rationale Extraction / QA Reranker"]
     E --> F["Claim-Evidence Pair Verification (Cross-Encoder / InfoXLM / XLM-RoBERTa)"]
-    F --> G["Final Verdict:
-- Supports
-- Refutes
-- Not Enough Information"]
+    F --> G["Final Verdict:\n- Supports\n- Refutes\n- Not Enough Information"]
 ```
 
-## Module Components
+## Các Thành Phần Chính
 
-1. **Evidence Retrieval (`src/retrieval/`)**:
-   - `bm25_retriever.py`: Lexical matching using BM25 ranking across candidate sentences.
-   - Dense retrieval (future work: PhoBERT bi-encoder / SimCSE embeddings).
+1. **Truy Xuất Bằng Chứng (`src/retrieval/`)**:
+   - `bm25_retriever.py`: Thuật toán đối sánh từ vựng BM25 xếp hạng các câu ứng viên trong ngữ cảnh.
+   - Dense retrieval: Mở rộng với PhoBERT bi-encoder hoặc embedding ngữ nghĩa.
 
-2. **Verdict Classifier (`src/models/`)**:
-   - `classifier.py`: Cross-encoder that takes `[CLS] Claim [SEP] Evidence [SEP]` and predicts logits over 3 classes.
-   - Supported backbones: `xlm-roberta-base`, `xlm-roberta-large`, `microsoft/infoxlm-large`, `vinai/phobert-base-v2`.
+2. **Phân Loại Xác Thực (`src/models/`)**:
+   - `classifier.py`: Cross-encoder nhận đầu vào `[CLS] Claim [SEP] Evidence [SEP]` và phân loại 3 nhãn.
+   - Các kiến trúc hỗ trợ: `xlm-roberta-base`, `microsoft/infoxlm-large`, `vinai/phobert-base-v2`.
 
-3. **Evaluation (`src/utils/metrics.py`)**:
-   - Macro Accuracy, Precision, Recall, Macro F1-score.
+3. **Đánh Giá (`src/utils/metrics.py`)**:
+   - Tính toán Accuracy, Macro Precision, Macro Recall và Macro F1-score.
