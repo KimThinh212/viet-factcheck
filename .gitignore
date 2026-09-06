@@ -1,0 +1,46 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.class
+
+# Caches & temporary files
+.pytest_cache/
+.coverage
+htmlcov/
+.cache/
+*.tmp
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# Model checkpoints & large binary weights
+models/checkpoints/*
+!models/checkpoints/.gitkeep
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.onnx
+
+# Training logs
+logs/*
+!logs/.gitkeep
+
+# IDE configuration
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
