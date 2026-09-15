@@ -804,84 +804,9 @@ toc_entries = [
     ("PHỤ LỤC", "42", 0)
 ]
 
-sdt_toc = parse_xml(r'''
-    <w:sdt xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-        <w:sdtPr>
-            <w:docPartObj>
-                <w:docPartGallery w:val="Table of Contents"/>
-                <w:docPartUnique/>
-            </w:docPartObj>
-        </w:sdtPr>
-        <w:sdtContent>
-            <w:p>
-                <w:pPr>
-                    <w:pStyle w:val="TOCHeading"/>
-                </w:pPr>
-                <w:r>
-                    <w:fldChar w:fldCharType="begin"/>
-                </w:r>
-                <w:instrText xml:space="preserve"> TOC \o "1-3" \h \z \u </w:instrText>
-                <w:r>
-                    <w:fldChar w:fldCharType="separate"/>
-                </w:r>
-            </w:p>
-        </w:sdtContent>
-    </w:sdt>
-''')
-
-sdt_content = sdt_toc.find('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}sdtContent')
-
 for title, page_num, level in toc_entries:
-    indent_dxa = 0 if level == 0 else (360 if level == 1 else 720)
-    is_bold_val = '<w:b/>' if level == 0 else ''
-    font_sz = '24' if level == 0 else '23'
-    p_xml = f'''
-    <w:p xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-        <w:pPr>
-            <w:pStyle w:val="TOC{level+1}"/>
-            <w:tabs>
-                <w:tab w:val="right" w:leader="dot" w:pos="9070"/>
-            </w:tabs>
-            <w:ind w:left="{indent_dxa}"/>
-            <w:spacing w:before="24" w:after="24" w:line="240" w:lineRule="auto"/>
-        </w:pPr>
-        <w:r>
-            <w:rPr>
-                <w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/>
-                {is_bold_val}
-                <w:sz w:val="{font_sz}"/>
-            </w:rPr>
-            <w:t>{html.escape(title)}</w:t>
-        </w:r>
-        <w:r>
-            <w:rPr>
-                <w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/>
-                <w:sz w:val="{font_sz}"/>
-            </w:rPr>
-            <w:tab/>
-        </w:r>
-        <w:r>
-            <w:rPr>
-                <w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/>
-                {is_bold_val}
-                <w:sz w:val="{font_sz}"/>
-            </w:rPr>
-            <w:t>{html.escape(str(page_num))}</w:t>
-        </w:r>
-    </w:p>
-    '''
-    sdt_content.append(parse_xml(p_xml))
+    add_leader_tab_entry(doc, title, page_num, level=level, is_bold=(level==0))
 
-# Closing field tag
-sdt_content.append(parse_xml(r'''
-    <w:p xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-        <w:r>
-            <w:fldChar w:fldCharType="end"/>
-        </w:r>
-    </w:p>
-'''))
-
-doc._body._element.append(sdt_toc)
 doc.add_page_break()
 
 # 3.7. DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT
