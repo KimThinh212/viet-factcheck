@@ -52,51 +52,19 @@ def latex_to_omml(latex_code):
     omml = transform(tree)
     return etree.tostring(omml, encoding='utf-8').decode('utf-8')
 
-def add_equation_table(latex_code, eq_number):
-    tbl = doc.add_table(rows=1, cols=2)
-    tbl.alignment = WD_TABLE_ALIGNMENT.CENTER
-    tbl.autofit = False
-    
-    tblPr = tbl._tbl.tblPr
-    tblBorders = parse_xml(r'''
-        <w:tblBorders xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-            <w:top w:val="none"/><w:left w:val="none"/><w:bottom w:val="none"/><w:right w:val="none"/>
-            <w:insideH w:val="none"/><w:insideV w:val="none"/>
-        </w:tblBorders>
-    ''')
-    tblPr.append(tblBorders)
-    
-    cell_eq = tbl.cell(0, 0)
-    cell_num = tbl.cell(0, 1)
-    cell_eq.width = Inches(5.6)
-    cell_num.width = Inches(0.9)
-    
-    p_eq = cell_eq.paragraphs[0]
-    p_eq.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    p_eq.paragraph_format.space_before = Pt(3)
-    p_eq.paragraph_format.space_after = Pt(3)
-    p_eq.paragraph_format.line_spacing = 1.0
+def add_equation_table(latex_code, eq_number=None):
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.paragraph_format.space_before = Pt(4)
+    p.paragraph_format.space_after = Pt(4)
+    p.paragraph_format.line_spacing = 1.15
     omml_xml = latex_to_omml(latex_code)
-    p_eq._element.append(parse_xml(omml_xml))
-    
-    p_num = cell_num.paragraphs[0]
-    p_num.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    p_num.paragraph_format.space_before = Pt(3)
-    p_num.paragraph_format.space_after = Pt(3)
-    p_num.paragraph_format.line_spacing = 1.0
-    r_num = p_num.add_run(f"({eq_number})")
-    r_num.font.name = 'Times New Roman'
-    r_num.font.size = Pt(11.5)
-    r_num.font.italic = True
-    
-    p_post = doc.add_paragraph()
-    p_post.paragraph_format.space_before = Pt(0)
-    p_post.paragraph_format.space_after = Pt(3)
-    p_post.paragraph_format.line_spacing = 1.0
-    return tbl
+    omml_para = f'<m:oMathPara xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">{omml_xml}</m:oMathPara>'
+    p._element.append(parse_xml(omml_para))
+    return p
 
-COLOR_PRIMARY = RGBColor(27, 54, 93)   # #1B365D - HUIT Navy Blue
-COLOR_TEXT = RGBColor(30, 30, 30)
+COLOR_PRIMARY = RGBColor(0, 0, 0)   # Standard Black matching DACN01_VuPhuLoc.docx
+COLOR_TEXT = RGBColor(0, 0, 0)
 
 def style_heading_1(text):
     p = doc.add_paragraph(style='Heading 1')
@@ -225,21 +193,9 @@ def add_figure(image_path, caption_text, width_inches=5.8):
     return p_img, p_cap
 
 def format_table(table, col_widths, col_alignments=None, font_size=11):
+    table.style = 'Table Grid'
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
     table.autofit = False
-    
-    tblPr = table._tbl.tblPr
-    tblBorders = parse_xml(r'''
-        <w:tblBorders xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-            <w:top w:val="single" w:sz="6" w:space="0" w:color="B0C4DE"/>
-            <w:left w:val="none"/>
-            <w:bottom w:val="single" w:sz="8" w:space="0" w:color="1B365D"/>
-            <w:right w:val="none"/>
-            <w:insideH w:val="single" w:sz="4" w:space="0" w:color="E0E6ED"/>
-            <w:insideV w:val="none"/>
-        </w:tblBorders>
-    ''')
-    tblPr.append(tblBorders)
     
     header_row = table.rows[0]
     trPr = header_row._tr.get_or_add_trPr()
@@ -247,27 +203,20 @@ def format_table(table, col_widths, col_alignments=None, font_size=11):
     
     for i, cell in enumerate(header_row.cells):
         cell.width = Inches(col_widths[i])
-        tcPr = cell._tc.get_or_add_tcPr()
-        tcPr.append(parse_xml(r'<w:shd xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" w:val="clear" w:color="auto" w:fill="1B365D"/>'))
-        tcPr.append(parse_xml(r'<w:tcMar xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:top w:w="120" w:type="dxa"/><w:bottom w:w="120" w:type="dxa"/><w:left w:w="140" w:type="dxa"/><w:right w:w="140" w:type="dxa"/></w:tcMar>'))
         p = cell.paragraphs[0]
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.paragraph_format.space_before = Pt(2)
-        p.paragraph_format.space_after = Pt(2)
+        p.paragraph_format.space_before = Pt(3)
+        p.paragraph_format.space_after = Pt(3)
+        p.paragraph_format.line_spacing = 1.15
         for r in p.runs:
             r.font.name = 'Times New Roman'
             r.font.size = Pt(font_size)
             r.font.bold = True
-            r.font.color.rgb = RGBColor(255, 255, 255)
+            r.font.color.rgb = RGBColor(0, 0, 0)
             
     for row_idx, row in enumerate(table.rows[1:]):
-        bg_color = "F8FAFC" if row_idx % 2 == 1 else "FFFFFF"
         for col_idx, cell in enumerate(row.cells):
             cell.width = Inches(col_widths[col_idx])
-            tcPr = cell._tc.get_or_add_tcPr()
-            if bg_color != "FFFFFF":
-                tcPr.append(parse_xml(f'<w:shd xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" w:val="clear" w:color="auto" w:fill="{bg_color}"/>'))
-            tcPr.append(parse_xml(r'<w:tcMar xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:top w:w="100" w:type="dxa"/><w:bottom w:w="100" w:type="dxa"/><w:left w:w="140" w:type="dxa"/><w:right w:w="140" w:type="dxa"/></w:tcMar>'))
             p = cell.paragraphs[0]
             if col_alignments and col_idx < len(col_alignments):
                 p.alignment = col_alignments[col_idx]
@@ -279,7 +228,7 @@ def format_table(table, col_widths, col_alignments=None, font_size=11):
             for r in p.runs:
                 r.font.name = 'Times New Roman'
                 r.font.size = Pt(font_size)
-                r.font.color.rgb = COLOR_TEXT
+                r.font.color.rgb = RGBColor(0, 0, 0)
 
 def add_leader_tab_entry(p_or_doc, title, page_num, level=0, is_bold=False, font_size=11.5):
     """Adds a paragraph with right-aligned dot leader tab stop for figures/tables/lists."""
@@ -643,80 +592,52 @@ add_body_p("Mô hình ngôn ngữ lớn cho phát hiện tin giả và kiểm ch
 add_body_p("1. Nguyễn Hữu Trí (2045230111) | 2. Võ Bạch Kim Thịnh (2045230096) | 3. Trần Nguyên Khải (2045230048)", bold_prefix="Sinh viên thực hiện: ")
 
 add_body_p("Ý KIẾN NHẬN XÉT VÀ ĐÁNH GIÁ:", bold_prefix=None, italic=True)
-add_bullet_p("........................................................................................................................................................................", bold_prefix="1. Về tinh thần, thái độ và tiến độ thực hiện: ")
-add_bullet_p("........................................................................................................................................................................", bold_prefix="")
-add_bullet_p("........................................................................................................................................................................", bold_prefix="2. Về tính cấp thiết, phương pháp và hàm lượng khoa học: ")
-add_bullet_p("........................................................................................................................................................................", bold_prefix="")
-add_bullet_p("........................................................................................................................................................................", bold_prefix="3. Về chất lượng sản phẩm, mã nguồn và kết quả thực nghiệm: ")
-add_bullet_p("........................................................................................................................................................................", bold_prefix="")
-add_bullet_p("........................................................................................................................................................................", bold_prefix="4. Về hình thức trình bày và văn phong học thuật của báo cáo: ")
-add_bullet_p("........................................................................................................................................................................", bold_prefix="")
-
-add_body_p("ĐIỂM ĐÁNH GIÁ VÀ XẾP LOẠI:", bold_prefix=None, italic=True)
-tbl_grade = doc.add_table(rows=4, cols=4)
-tbl_grade.rows[0].cells[0].paragraphs[0].text = "TT"
-tbl_grade.rows[0].cells[1].paragraphs[0].text = "Họ và tên sinh viên"
-tbl_grade.rows[0].cells[2].paragraphs[0].text = "Mã số sinh viên"
-tbl_grade.rows[0].cells[3].paragraphs[0].text = "Điểm số (Số & Chữ)"
-for idx, mem in enumerate(TEAM_MEMBERS):
-    tbl_grade.rows[idx+1].cells[0].paragraphs[0].text = str(idx+1)
-    tbl_grade.rows[idx+1].cells[1].paragraphs[0].text = mem[0]
-    tbl_grade.rows[idx+1].cells[2].paragraphs[0].text = mem[1]
-    tbl_grade.rows[idx+1].cells[3].paragraphs[0].text = "............ / 10.0"
-format_table(tbl_grade, [0.6, 2.5, 1.6, 1.7], [WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.CENTER])
+for _ in range(14):
+    p_dot = doc.add_paragraph()
+    p_dot.paragraph_format.space_before = Pt(2)
+    p_dot.paragraph_format.space_after = Pt(2)
+    r_d = p_dot.add_run("………………………………………………………………………………………………………………………………………………")
+    r_d.font.name = 'Times New Roman'
+    r_d.font.size = Pt(11)
 
 p_gv_sig = doc.add_paragraph()
 p_gv_sig.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-p_gv_sig.paragraph_format.space_before = Pt(20)
-r_gv_s = p_gv_sig.add_run("TP. Hồ Chí Minh, ngày ..... tháng ..... năm 2026\nGiảng viên hướng dẫn\n\n\n\n\nTS. TRẦN KHẢI THIỆN")
+p_gv_sig.paragraph_format.space_before = Pt(18)
+r_gv_s = p_gv_sig.add_run("TP. Hồ Chí Minh, ngày ..... tháng ..... năm 2026\nGIẢNG VIÊN HƯỚNG DẪN\n(Ký và ghi rõ họ tên)\n\n\n\nTS. TRẦN KHẢI THIỆN")
 r_gv_s.font.name = 'Times New Roman'
-r_gv_s.font.size = Pt(12.5)
+r_gv_s.font.size = Pt(12)
 r_gv_s.font.bold = True
 
 doc.add_page_break()
 
 # 3.4. BẢNG PHÂN CÔNG CÔNG VIỆC
-style_heading_1("BẢNG PHÂN CÔNG CÔNG VIỆC VÀ ĐÓNG GÓP THÀNH VIÊN")
+style_heading_1("BẢNG PHÂN CÔNG CÔNG VIỆC")
 add_body_p("Để đảm bảo tiến độ và chất lượng khoa học cao nhất của đồ án môn học, nhóm đã phân công nhiệm vụ cụ thể dựa trên năng lực và thế mạnh chuyên môn của từng thành viên, đồng thời duy trì sự phối hợp chặt chẽ trong từng giai đoạn:")
 
-tbl_work = doc.add_table(rows=4, cols=5)
-tbl_work.rows[0].cells[0].paragraphs[0].text = "TT"
-tbl_work.rows[0].cells[1].paragraphs[0].text = "Họ và tên sinh viên"
-tbl_work.rows[0].cells[2].paragraphs[0].text = "Vai trò"
-tbl_work.rows[0].cells[3].paragraphs[0].text = "Nhiệm vụ cụ thể đảm nhiệm"
-tbl_work.rows[0].cells[4].paragraphs[0].text = "Mức độ hoàn thành"
+tbl_work = doc.add_table(rows=4, cols=4)
+tbl_work.rows[0].cells[0].paragraphs[0].text = "STT"
+tbl_work.rows[0].cells[1].paragraphs[0].text = "Tên"
+tbl_work.rows[0].cells[2].paragraphs[0].text = "Mã số sinh viên"
+tbl_work.rows[0].cells[3].paragraphs[0].text = "Công việc thực hiện"
 
-for idx, mem in enumerate(TEAM_MEMBERS):
+work_data = [
+    ("1", "Võ Bạch Kim Thịnh", "2045230096", "Viết rõ bài toán, mục tiêu, phạm vi nghiên cứu; Phân định bản chất khoa học giữa Fake News Detection và Fact Verification; Khảo sát toàn diện 7 mô hình Baseline (kiến trúc, số liệu công bố, đối chuẩn so sánh)."),
+    ("2", "Trần Nguyên Khải", "2045230048", "Khảo sát và phân tích sâu 6 bộ dữ liệu; Mô tả chi tiết ViWikiFC, ViFactCheck (nguồn gốc, quy mô, nhãn, cách chia tập train/val/test); Thực hiện quy trình chuẩn hóa Data Harmonization; Trình bày các bảng số liệu thực nghiệm và biểu đồ."),
+    ("3", "Nguyễn Hữu Trí (Nhóm trưởng)", "2045230111", "Xây dựng kiến trúc Pipeline hệ thống SER + TVC + RAG; Thiết kế thuật toán lai ghép BM25+BGE-M3+RRF+Reranker; Xây dựng bộ phân loại hai bước TVC; Tối ưu hóa LLM Qwen2.5-7B (4-bit NF4) và tổng hợp báo cáo.")
+]
+
+for idx, (stt, name, mssv, task) in enumerate(work_data):
     r_cells = tbl_work.rows[idx+1].cells
-    r_cells[0].paragraphs[0].text = str(idx+1)
-    r_cells[1].paragraphs[0].text = f"{mem[0]}\nMSSV: {mem[1]}"
-    r_cells[2].paragraphs[0].text = mem[2]
-    r_cells[3].paragraphs[0].text = mem[4]
-    r_cells[4].paragraphs[0].text = mem[5]
+    r_cells[0].paragraphs[0].text = stt
+    r_cells[1].paragraphs[0].text = name
+    r_cells[2].paragraphs[0].text = mssv
+    r_cells[3].paragraphs[0].text = task
 
-format_table(tbl_work, [0.4, 1.4, 1.0, 2.9, 0.7], [WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.JUSTIFY, WD_ALIGN_PARAGRAPH.CENTER], font_size=10)
-
-doc.add_page_break()
-
-# 3.5. TÓM TẮT ĐỀ TÀI / ABSTRACT
-style_heading_1("TÓM TẮT ĐỀ TÀI")
-add_body_p("Trong bối cảnh kỷ nguyên số bùng nổ thông tin và sự phát triển vượt bậc của các Mô hình Ngôn ngữ Lớn (LLM), tin tức sai lệch (misinformation) và tin giả được ngụy tạo tinh vi (disinformation) đang lan truyền với tốc độ chóng mặt, trở thành mối đe dọa trực tiếp đối với trật tự xã hội và kinh tế tại Việt Nam. Các kỹ thuật phát hiện tin giả truyền thống tiếp cận bài toán dưới dạng phân loại nhị phân đơn thuần dựa trên đặc trưng văn phong hoặc cảm xúc thường bộc lộ những hạn chế nghiêm trọng: mang bản chất 'hộp đen' thiếu khả năng giải thích, dễ bị đánh lừa bởi tin giả viết bằng văn phong báo chí chuẩn mực, và không thể đối soát với nguồn chân lý khách quan. Đồ án môn học này đề xuất một giải pháp toàn diện dựa trên kiến trúc Fact-Checking hiện đại kết hợp mô hình ngôn ngữ lớn: Hệ thống Truy xuất bằng chứng ngữ nghĩa (Semantic Evidence Retrieval – SER) kết hợp Phân loại phán quyết hai bước (Two-step Verdict Classification – TVC) và Sinh giải thích tăng cường truy xuất (RAG Rationale Generation).")
-add_body_p("Hệ thống giải quyết triệt để các thách thức cốt lõi thông qua 3 đóng góp kỹ thuật chính: (1) Mô-đun SER lai ghép nhiều tầng kết hợp truy xuất từ vựng BM25Okapi và truy xuất vector ngữ nghĩa đa ngữ BGE-M3 thông qua thuật toán dung hợp Reciprocal Rank Fusion (RRF với k=60), sau đó được tái xếp hạng chính xác bằng Cross-Encoder (bge-reranker-v2-m3), đạt tỷ lệ truy hồi bằng chứng Hits@5 lên tới 92.40% và MRR@10 đạt 0.824; (2) Mô-đun TVC tách bài toán phân loại 3 nhãn phức tạp thành 2 bước phân loại nhị phân kế tiếp gồm Bộ lọc tính đầy đủ (Sufficiency Filter) để loại bỏ hiện tượng đoán mò nhãn Not Enough Information (NEI), tiếp nối bởi bước Xác minh lập trường (Stance Verification: Supported vs. Refuted), giúp cải thiện Macro-F1 nhãn NEI thêm +14.30% và nâng Macro-F1 toàn hệ thống lên 83.85%; (3) Tích hợp mô hình ngôn ngữ lớn Qwen2.5-7B-Instruct áp dụng kỹ thuật lượng tử hóa 4-bit NF4 (NormalFloat4) qua bitsandbytes, cho phép vận hành hiệu quả trên GPU Google Colab Tesla T4 (15GB VRAM) và xuất lời giải thích lập luận Chain-of-Thought minh bạch theo định dạng chuẩn Pydantic Schema. Kết quả thực nghiệm trên kho ngữ liệu thống nhất 18,828 tài liệu kết hợp giữa Wikipedia bách khoa (ViWikiFC) và báo chí chính thống đa lĩnh vực (ViFactCheck - AAAI 2025) chứng minh phương pháp đề xuất vượt trội baseline cơ sở ViWikiFC (+11.60% Strict FEVER Score), tiệm cận SOTA SemViQA đồng thời cung cấp khả năng giải thích minh bạch vượt trội.")
-
-p_ab = doc.add_paragraph()
-p_ab.paragraph_format.space_before = Pt(12)
-r_ab_title = p_ab.add_run("ABSTRACT (ENGLISH)")
-r_ab_title.font.name = 'Times New Roman'
-r_ab_title.font.size = Pt(14)
-r_ab_title.font.bold = True
-r_ab_title.font.color.rgb = COLOR_PRIMARY
-
-add_body_p("In the era of information proliferation and generative artificial intelligence, the rapid dissemination of sophisticated disinformation and misinformation poses acute challenges to societal stability and digital trust. Traditional fake news detection frameworks, typically formulated as binary classification tasks based solely on stylometry or affective signals, exhibit severe vulnerabilities: they act as opaque black boxes devoid of verifiability, fail against professionally written deceptive texts, and lack external knowledge grounding. This course project introduces an end-to-end Vietnamese Fact-Checking architecture that integrates Large Language Models (LLMs) with a robust verification pipeline: Semantic Evidence Retrieval (SER) combined with Two-step Verdict Classification (TVC) and Retrieval-Augmented Generation (RAG) Rationale reasoning.")
-add_body_p("Our proposed system tackles key technical bottlenecks through three innovations: (1) A multi-stage hybrid SER module that synergizes lexical retrieval (BM25Okapi) and multilingual dense semantic embeddings (BGE-M3) via Reciprocal Rank Fusion (RRF, k=60), followed by fine-grained neural cross-attention reranking (bge-reranker-v2-m3), achieving a remarkable Hits@5 of 92.40% and an MRR@10 of 0.824; (2) A TVC mechanism that decomposes the challenging 3-way decision space into two sequential binary stages—a Sufficiency Filter to eliminate arbitrary guessing on Not Enough Information (NEI) cases, followed by Stance Verification (Supported vs. Refuted)—boosting NEI Macro-F1 by +14.30% and overall Macro-F1 to 83.85%; (3) Deployment of Qwen2.5-7B-Instruct optimized with 4-bit NormalFloat (NF4) quantization via bitsandbytes, enabling cost-effective inference on accessible commodity hardware (NVIDIA Tesla T4 GPU, 15GB VRAM) while generating structured, verifiable Chain-of-Thought explanations validated via Pydantic schema. Extensive experiments conducted on a unified corpus of 18,828 documents harmonized from ViWikiFC and ViFactCheck (AAAI-25) demonstrate that our pipeline substantially outperforms the official ViWikiFC baseline (+11.60% Strict FEVER Score), rivals the discriminative SOTA SemViQA, and sets a benchmark for transparent, explainable Vietnamese fact-checking.")
+format_table(tbl_work, [0.5, 1.8, 1.3, 2.9], [WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.LEFT, WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.JUSTIFY], font_size=10.5)
 
 doc.add_page_break()
 
-# 3.6. MỤC LỤC
+# 3.5. MỤC LỤC
 p_toc_heading = doc.add_paragraph()
 p_toc_heading.alignment = WD_ALIGN_PARAGRAPH.CENTER
 p_toc_heading.paragraph_format.space_before = Pt(14)
@@ -732,11 +653,11 @@ toc_entries = [
     ("LỜI CAM ĐOAN", "i", 0),
     ("LỜI CẢM ƠN", "ii", 0),
     ("NHẬN XÉT CỦA GIẢNG VIÊN HƯỚNG DẪN", "iii", 0),
-    ("BẢNG PHÂN CÔNG CÔNG VIỆC VÀ ĐÓNG GÓP THÀNH VIÊN", "iv", 0),
-    ("TÓM TẮT ĐỀ TÀI / ABSTRACT", "v", 0),
-    ("DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT", "vii", 0),
-    ("DANH MỤC HÌNH ẢNH", "viii", 0),
-    ("DANH MỤC BẢNG BIỂU", "ix", 0),
+    ("BẢNG PHÂN CÔNG CÔNG VIỆC", "iv", 0),
+    ("MỤC LỤC", "v", 0),
+    ("DANH MỤC CÁC KÝ HIỆU VÀ CHỮ VIẾT TẮT", "vi", 0),
+    ("DANH MỤC HÌNH ẢNH", "vii", 0),
+    ("DANH MỤC BẢNG BIỂU", "viii", 0),
     ("CHƯƠNG 1: MỞ ĐẦU", "1", 0),
     ("1.1. Bối cảnh và Tính cấp thiết của đề tài", "1", 1),
     ("1.2. Phân định bản chất khoa học: Phát hiện tin giả vs. Kiểm chứng thông tin", "2", 1),
@@ -800,8 +721,7 @@ toc_entries = [
     ("6.1. Kết luận", "38", 1),
     ("6.2. Hạn chế", "38", 1),
     ("6.3. Hướng phát triển trong tương lai", "39", 1),
-    ("TÀI LIỆU THAM KHẢO", "40", 0),
-    ("PHỤ LỤC", "42", 0)
+    ("TÀI LIỆU THAM KHẢO", "40", 0)
 ]
 
 for title, page_num, level in toc_entries:
@@ -809,12 +729,12 @@ for title, page_num, level in toc_entries:
 
 doc.add_page_break()
 
-# 3.7. DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT
-style_heading_1("DANH MỤC THUẬT NGỮ VÀ TỪ VIẾT TẮT")
+# 3.7. DANH MỤC CÁC KÝ HIỆU VÀ CHỮ VIẾT TẮT
+style_heading_1("DANH MỤC CÁC KÝ HIỆU VÀ CHỮ VIẾT TẮT")
 tbl_abbr = doc.add_table(rows=len(ABBREVIATIONS) + 1, cols=3)
-tbl_abbr.rows[0].cells[0].paragraphs[0].text = "Thuật ngữ viết tắt"
-tbl_abbr.rows[0].cells[1].paragraphs[0].text = "Tên đầy đủ tiếng Anh"
-tbl_abbr.rows[0].cells[2].paragraphs[0].text = "Ý nghĩa / Tên tiếng Việt"
+tbl_abbr.rows[0].cells[0].paragraphs[0].text = "Viết tắt"
+tbl_abbr.rows[0].cells[1].paragraphs[0].text = "Tên tiếng Anh"
+tbl_abbr.rows[0].cells[2].paragraphs[0].text = "Tên tiếng Việt"
 
 for idx, (abbr, en, vi) in enumerate(ABBREVIATIONS):
     tbl_abbr.rows[idx+1].cells[0].paragraphs[0].text = abbr

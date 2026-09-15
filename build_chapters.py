@@ -118,7 +118,7 @@ def build_all_chapters(doc, helpers):
     add_body_p("Trong bài toán FEVER, thước đo đánh giá khắt khe và mang tính quyết định nhất là FEVER Strict Accuracy (hay Strict FEVER Score). Một mẫu kiểm thử i chỉ được công nhận là dự đoán chính xác nếu và chỉ nếu hệ thống đồng thời thỏa mãn hai điều kiện nghiêm ngặt: (1) Dự đoán chính xác nhãn phán quyết chân lý y_i; và (2) Tập hợp các câu bằng chứng do hệ thống truy xuất được (E_hat_i) phải bao trùm đầy đủ tập hợp các câu bằng chứng vàng tối thiểu (E_i^*):")
     
     add_equation_table(
-        r'\text{Strict\_Acc} = \frac{1}{|Q|} \sum_{i=1}^{|Q|} \mathbb{I}\left(\hat{y}_i = y_i \land E_i^* \subseteq \hat{\mathcal{E}}_i\right)',
+        r'\text{Strict-Acc} = \frac{1}{|Q|} \sum_{i=1}^{|Q|} I(\hat{y}_i = y_i \land E_i^* \subseteq \hat{E}_i)',
         "2.1"
     )
     add_body_p("Trong công thức (2.1), |Q| là tổng số lượng mẫu trong tập kiểm thử, hàm chỉ thị I(.) nhận giá trị 1 khi mệnh đề logic bên trong đúng và nhận giá trị 0 trong trường hợp ngược lại. Chỉ số này ngăn chặn hoàn toàn hiện tượng mô hình dự đoán đúng nhãn nhờ khai thác thiên lệch thống kê trong dữ liệu (spurious statistical cues) mà không thực sự dựa trên bằng chứng xác thực.")
@@ -152,7 +152,7 @@ def build_all_chapters(doc, helpers):
     add_body_p("Mặc dù BM25 rất mạnh về từ khóa, nó hoàn toàn bất lực trước hiện tượng đồng nghĩa, hoán dụ hoặc diễn đạt gián tiếp (paraphrasing). Để khắc phục điểm yếu này, đề tài tích hợp mô hình nhúng ngữ nghĩa BGE-M3 (Chen et al., ACL 2024) [4]. BGE-M3 là mô hình song hành (Bi-Encoder) hỗ trợ hơn 100 ngôn ngữ, chiếu các câu văn vào không gian vector d chiều (d = 1024) có khả năng bảo toàn cấu trúc ngữ nghĩa sâu sắc. Độ tương đồng ngữ nghĩa giữa vector biểu diễn phát biểu e_q và văn bản e_d được đo lường bằng hàm Cosine Similarity:")
     
     add_equation_table(
-        r'\text{Sim}_{\text{dense}}(q, d) = \frac{\mathbf{e}_q \cdot \mathbf{e}_d}{\|\mathbf{e}_q\|_2 \|\mathbf{e}_d\|_2}',
+        r'\text{Sim}_{\text{dense}}(q, d) = \frac{e_q \cdot e_d}{\|e_q\|_2 \|e_d\|_2}',
         "2.5"
     )
     add_body_p("BGE-M3 được huấn luyện thông qua kỹ thuật chưng cất tri thức tự thân (Self-Knowledge Distillation) và kỹ thuật học tương phản đa tầng (multi-granularity contrastive learning), mang lại độ nhạy ngữ nghĩa vượt trội đối với ngữ pháp phức tạp của tiếng Việt.")
@@ -161,7 +161,7 @@ def build_all_chapters(doc, helpers):
     add_body_p("Do thang điểm số của BM25 (không bị chặn trên) và BGE-M3 (thuộc đoạn [-1, 1]) có bản chất toán học hoàn toàn khác nhau, các phương pháp cộng điểm tuyến tính đòi hỏi quy trình chuẩn hóa phức tạp và dễ bị lệch điểm. Thuật toán RRF (Cormack et al., SIGIR 2009) [5] giải quyết triệt để vấn đề này bằng cách chỉ dựa trên thứ hạng (rank) của văn bản trong từng danh sách truy xuất:")
     
     add_equation_table(
-        r'\text{RRF\_Score}(d \in \mathcal{D}) = \sum_{m \in M} \frac{1}{k + r_m(d)}',
+        r'\text{RRF}(d) = \sum_{m \in M} \frac{1}{k + r_m(d)}',
         "2.6"
     )
     add_body_p("Trong đó M là tập hợp các phương pháp tìm kiếm (M = {BM25, BGE-M3}), r_m(d) là thứ vị xếp hạng của tài liệu d trong phương pháp m, và k là hằng số làm mượt (smoothing constant). Nhóm thiết lập k = 60 theo khuyến nghị chuẩn học thuật, giúp cân bằng hoàn hảo giữa các tài liệu đứng đầu và hạn chế độ nhiễu của các tài liệu xếp hạng thấp.")
@@ -170,7 +170,7 @@ def build_all_chapters(doc, helpers):
     add_body_p("Mô hình Bi-Encoder tuy có tốc độ truy xuất cực nhanh trên chỉ mục FAISS [18], nhưng do mã hóa câu hỏi và tài liệu hoàn toàn độc lập nên bỏ sót các tương tác từ vựng chéo phức tạp. Mô hình tái xếp hạng Cross-Encoder bge-reranker-v2-m3 nhận đầu vào là chuỗi ghép nối [CLS] q [SEP] d [SEP] và áp dụng cơ chế tự chú ý đầy đủ (Full Cross-Attention) qua tất cả các lớp Transformer:")
     
     add_equation_table(
-        r's(q, d) = \sigma\left(\mathbf{W} \cdot \text{Encoder}([CLS] \circ q \circ [SEP] \circ d \circ [SEP]) + b\right)',
+        r's(q, d) = \sigma(W \cdot \text{Encoder}([CLS] \circ q \circ [SEP] \circ d \circ [SEP]) + b)',
         "2.7"
     )
     add_body_p("Điểm số tương quan s(q, d) phản ánh mức độ phù hợp bằng chứng tinh tế nhất, cho phép chắt lọc Top-3 câu bằng chứng chính xác nhất cung cấp cho mô-đun phân loại.")
@@ -438,7 +438,7 @@ def build_all_chapters(doc, helpers):
     add_body_p("Hiệu năng của mô-đun SER được đánh giá thông qua các chỉ số chuẩn mực trong hệ thống thông tin: Hits@1, Hits@3, Hits@5 (tỷ lệ mẫu mà bằng chứng vàng xuất hiện trong Top-K câu truy xuất) và Mean Reciprocal Rank (MRR@10):")
     
     add_equation_table(
-        r'\text{Hits@}K = \frac{1}{|Q|} \sum_{i=1}^{|Q|} \mathbb{I}\left(\text{rank}_i \le K\right), \quad \text{MRR} = \frac{1}{|Q|} \sum_{i=1}^{|Q|} \frac{1}{\text{rank}_i}',
+        r'\text{Hits@}K = \frac{1}{|Q|} \sum_{i=1}^{|Q|} I(\text{rank}_i \le K), \quad \text{MRR} = \frac{1}{|Q|} \sum_{i=1}^{|Q|} \frac{1}{\text{rank}_i}',
         "5.1"
     )
     add_body_p("Kết quả so sánh giữa 4 phương pháp truy xuất trên cùng một tập kiểm thử được trình bày trong Bảng 5.1 và trực quan hóa qua Hình 5.1:")
@@ -623,89 +623,5 @@ def build_all_chapters(doc, helpers):
         r_txt = p_ref.add_run(ref_text)
         r_txt.font.name = 'Times New Roman'
         r_txt.font.size = Pt(11.5)
-
-    doc.add_page_break()
-
-    # ============================================================
-    # PHỤ LỤC
-    # ============================================================
-    style_heading_1("PHỤ LỤC")
-
-    style_heading_2("Phụ lục A: Cài đặt mã nguồn cốt lõi mô-đun SER và TVC")
-    add_body_p("Dưới đây là đoạn mã nguồn Python mô tả cách thức đóng gói mô-đun Phân loại phán quyết hai bước (TVC Classifier) và cấu trúc Pydantic Schema chuẩn hóa được triển khai trong dự án:")
-    
-    code_text = '''from pydantic import BaseModel, Field
-from typing import List, Literal, Optional
-
-class FactCheckRationale(BaseModel):
-    """Lược đồ dữ liệu đầu ra chuẩn hóa của hệ thống Fact-Checking."""
-    verdict: Literal["SUPPORTED", "REFUTED", "NOT_ENOUGH_INFO"] = Field(
-        ..., description="Phán quyết xác thực cuối cùng"
-    )
-    confidence: float = Field(
-        ..., ge=0.0, le=1.0, description="Độ tin cậy của quyết định"
-    )
-    evidence_spans: List[str] = Field(
-        default_factory=list, description="Trích dẫn bằng chứng then chốt"
-    )
-    reasoning_vi: str = Field(
-        ..., description="Chuỗi suy luận giải thích logic bằng tiếng Việt"
-    )
-
-class TVCClassifier:
-    """Mô-đun phân loại phán quyết hai bước Two-step Verdict Classification."""
-    def __init__(self, llm_pipeline):
-        self.llm = llm_pipeline
-
-    def classify(self, claim: str, evidence: str) -> dict:
-        # Bước 1: Bộ lọc tính đầy đủ (Sufficiency Filter)
-        suff_prompt = f"Phát biểu: {claim}\\nBằng chứng: {evidence}\\nTrả lời SUFFICIENT hoặc INSUFFICIENT:"
-        suff_res = self.llm(suff_prompt, max_tokens=10).strip().upper()
-        
-        if "INSUFFICIENT" in suff_res:
-            return {"verdict": "NOT_ENOUGH_INFO", "step": 1, "confidence": 0.89}
-            
-        # Bước 2: Xác minh lập trường (Stance Verification)
-        stance_prompt = f"Phát biểu: {claim}\\nBằng chứng: {evidence}\\nTrả lời SUPPORTED hoặc REFUTED:"
-        stance_res = self.llm(stance_prompt, max_tokens=10).strip().upper()
-        
-        verdict = "REFUTED" if "REFUTED" in stance_res else "SUPPORTED"
-        return {"verdict": verdict, "step": 2, "confidence": 0.95}'''
-        
-    p_c = doc.add_paragraph()
-    p_c.paragraph_format.left_indent = Inches(0.4)
-    p_c.paragraph_format.space_before = Pt(4)
-    p_c.paragraph_format.space_after = Pt(8)
-    r_c = p_c.add_run(code_text)
-    r_c.font.name = 'Consolas'
-    r_c.font.size = Pt(9.5)
-    r_c.font.color.rgb = RGBColor(40, 40, 40)
-
-    style_heading_2("Phụ lục B: Thiết kế Mẫu Prompt Few-shot tiếng Việt chuẩn hóa")
-    add_body_p("Mẫu prompt được tinh chỉnh công phu cho Bước 1 (Sufficiency Filter):")
-    prompt_1 = '''Bạn là chuyên gia thẩm định thông tin độc lập. Nhiệm vụ của bạn là đánh giá xem bằng chứng được cung cấp có chứa đủ dữ kiện để khẳng định hoặc bác bỏ phát biểu hay không.
-
-### Ví dụ mẫu:
-Phát biểu: "Chủ tịch Hồ Chí Minh đọc Tuyên ngôn Độc lập tại Quảng trường Ba Đình vào năm 1945."
-Bằng chứng: "Ngày 2 tháng 9 năm 1945, tại Quảng trường Ba Đình, Chủ tịch Hồ Chí Minh đọc bản Tuyên ngôn Độc lập."
-Kết luận: SUFFICIENT
-
-Phát biểu: "Bác sĩ Alexandre Yersin đã từng đạt giải thưởng Nobel Y học."
-Bằng chứng: "Alexandre Yersin là bác sĩ người Pháp gốc Thụy Sĩ, có nhiều năm nghiên cứu tại Nha Trang."
-Kết luận: INSUFFICIENT
-
-### Nhiệm vụ thực tế:
-Phát biểu: "{claim}"
-Bằng chứng: "{evidence}"
-Chỉ trả lời MỘT từ duy nhất: SUFFICIENT hoặc INSUFFICIENT.
-Kết luận:'''
-    p_p1 = doc.add_paragraph()
-    p_p1.paragraph_format.left_indent = Inches(0.4)
-    p_p1.paragraph_format.space_before = Pt(4)
-    p_p1.paragraph_format.space_after = Pt(8)
-    r_p1 = p_p1.add_run(prompt_1)
-    r_p1.font.name = 'Consolas'
-    r_p1.font.size = Pt(9.5)
-    r_p1.font.color.rgb = RGBColor(40, 40, 40)
-
     print("All chapters successfully generated.")
+
