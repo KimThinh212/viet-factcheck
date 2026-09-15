@@ -102,7 +102,7 @@ Nhóm lựa chọn **04 baseline tiêu biểu** đại diện cho các trường
 ---
 
 ### 2.2. Baseline 2: PhoBERT-large & XLM-RoBERTa-large (Mốc chuẩn ViFactCheck - AAAI 2025)
-- **Nguồn trích dẫn:** Paper công bố tập ViFactCheck tại hội nghị AAAI: *"ViFactCheck: A New Benchmark Dataset and Methods for Multi-domain News Fact-Checking in Vietnamese"* (arXiv:2412.15308, AAAI-25).
+- **Nguồn trích dẫn:** Paper công bố tập ViFactCheck tại hội nghị AAAI: *"ViFactCheck: A New Benchmark Dataset and Methods for Multi-domain News Fact-Checking in Vietnamese"* (arXiv:2412.14856, AAAI-25).
 - **Kiến trúc mô hình:**
   - Đại diện cho hướng tiếp cận fine-tune mô hình Encoder chuyên biệt cho tiếng Việt (**PhoBERT-large**) và mô hình đa ngôn ngữ cực mạnh (**XLM-RoBERTa-large**).
   - Quy trình tiền xử lý: Tách từ tiếng Việt chuyên dụng bằng công cụ VnCoreNLP/pyvi cho PhoBERT; SentencePiece BPE cho XLM-R.
@@ -151,7 +151,7 @@ Nhóm lựa chọn **04 baseline tiêu biểu** đại diện cho các trường
 | Mô hình / Baseline | Nguồn tài liệu | Kiến trúc Retrieval | Kiến trúc Phân loại | Strict Acc (%) | Macro-F1 (%) | Năng lực giải thích (Explainability) |
 | :--- | :--- | :--- | :--- | :---: | :---: | :---: |
 | **BM25 + InfoXLM-L** | arXiv:2405.07615 | BM25 (Sparse) | InfoXLM-Large (1-step) | 67.00% | 86.51% (VP) | Không (chỉ trả ra nhãn số) |
-| **XLM-RoBERTa-L** | arXiv:2412.15308 | Full Context / Gold | XLM-R-Large (1-step) | 78.40% | 89.90% | Không |
+| **XLM-RoBERTa-L** | arXiv:2412.14856 | Full Context / Gold | XLM-R-Large (1-step) | 78.40% | 89.90% | Không |
 | **SemViQA (SOTA)** | arXiv:2503.00955 | TF-IDF + QATC | Two-Step TVC (InfoXLM) | **80.82%** | - | Chỉ trích xuất token span |
 | **LLM Thuần (No RAG)** | Nhóm thiết lập | Không có | Qwen2.5-7B Direct Prompt | Thấp (<55%) | Thấp | Ảo giác, lý giải không căn cứ |
 | **Hệ thống đề xuất (SER+TVC+RAG)** | Nhóm đề xuất | BM25 + BGE-M3 + RRF + Reranker | Two-Step TVC (Qwen2.5-7B) | **Kỳ vọng >82%** | **Cạnh tranh** | **Cao (CoT Tiếng Việt + JSON Schema)** |
