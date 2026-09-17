@@ -13,7 +13,7 @@ Instructor: TS. Trần Khải Thiện
 import os
 import html
 import docx
-from docx.shared import Inches, Pt, RGBColor
+from docx.shared import Inches, Pt, RGBColor, Mm
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.section import WD_SECTION_START
@@ -273,16 +273,8 @@ sec0.right_margin = Pt(56.7)
 sec0.header.is_linked_to_previous = False
 sec0.footer.is_linked_to_previous = False
 
-sectPr0 = sec0._sectPr
-pgBorders = parse_xml(r'''
-    <w:pgBorders xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" w:offsetFrom="page">
-        <w:top w:val="twistedLines1" w:sz="18" w:space="24" w:color="auto"/>
-        <w:left w:val="twistedLines1" w:sz="18" w:space="24" w:color="auto"/>
-        <w:bottom w:val="twistedLines1" w:sz="18" w:space="24" w:color="auto"/>
-        <w:right w:val="twistedLines1" w:sz="18" w:space="24" w:color="auto"/>
-    </w:pgBorders>
-''')
-sectPr0.append(pgBorders)
+# Note: pgBorders will be attached to sec0 after all sections are created,
+# to prevent python-docx from cloning borders into subsequent sections.
 
 logo_path = r'E:\VanDe_AI\docs\assets\huit_logo.jpeg'
 
@@ -501,6 +493,8 @@ sec1.header.is_linked_to_previous = False
 sec1.footer.is_linked_to_previous = False
 
 sectPr1 = sec1._sectPr
+for elem in sectPr1.findall('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pgBorders'):
+    sectPr1.remove(elem)
 pgNumType1 = parse_xml(r'<w:pgNumType xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" w:fmt="lowerRoman" w:start="1"/>')
 sectPr1.append(pgNumType1)
 
@@ -790,6 +784,10 @@ sec2.header.is_linked_to_previous = False
 sec2.footer.is_linked_to_previous = False
 
 sectPr2 = sec2._sectPr
+for elem in sectPr2.findall('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pgBorders'):
+    sectPr2.remove(elem)
+for elem in sectPr2.findall('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pgNumType'):
+    sectPr2.remove(elem)
 pgNumType2 = parse_xml(r'<w:pgNumType xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" w:start="1"/>')
 sectPr2.append(pgNumType2)
 
@@ -821,6 +819,32 @@ build_all_chapters(doc, helpers)
 # ============================================================
 # 5. SAVE FINAL DOCUMENT
 # ============================================================
+# Set standard A4 paper size for all sections (210mm x 297mm)
+for s in doc.sections:
+    s.page_width = Mm(210)
+    s.page_height = Mm(297)
+
+# Attach page border ONLY to Section 0 (Cover pages: Bìa chính và Bìa phụ)
+sectPr0 = doc.sections[0]._sectPr
+for elem in sectPr0.findall('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pgBorders'):
+    sectPr0.remove(elem)
+
+pgBorders = parse_xml(r'''
+    <w:pgBorders xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" w:offsetFrom="page">
+        <w:top w:val="twistedLines1" w:sz="18" w:space="24" w:color="auto"/>
+        <w:left w:val="twistedLines1" w:sz="18" w:space="24" w:color="auto"/>
+        <w:bottom w:val="twistedLines1" w:sz="18" w:space="24" w:color="auto"/>
+        <w:right w:val="twistedLines1" w:sz="18" w:space="24" w:color="auto"/>
+    </w:pgBorders>
+''')
+sectPr0.append(pgBorders)
+
+# Explicitly guarantee that Section 1 and Section 2 have NO pgBorders
+for s in doc.sections[1:]:
+    for elem in s._sectPr.findall('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}pgBorders'):
+        s._sectPr.remove(elem)
+
 output_path = r'E:\VanDe_AI\docs\BAO_CAO_DO_AN_HUIT.docx'
 doc.save(output_path)
 print(f"SUCCESS: Document saved to {output_path}!")
+
